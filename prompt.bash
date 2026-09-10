@@ -103,7 +103,7 @@ b_prompt_update() {
 
   if [[ -n "$root" ]]; then
     local repo prefix loc
-    local branch status
+    local branch git_status
     local dirty=0
     local staged=0
     local conflict=0
@@ -131,9 +131,9 @@ b_prompt_update() {
 
     # ----- working-tree state -----
 
-    status=$(command git status --porcelain 2>/dev/null)
+    git_status=$(command git status --porcelain 2>/dev/null)
 
-    if [[ -n "$status" ]]; then
+    if [[ -n "$git_status" ]]; then
       dirty=1
 
       local line code
@@ -153,7 +153,7 @@ b_prompt_update() {
             [[ "${line:0:1}" != " " ]] && staged=1
             ;;
         esac
-      done <<< "$status"
+      done <<< "$git_status"
     fi
 
 
@@ -233,6 +233,32 @@ b_prompt_update() {
 }
 
 
-# Run before every interactive prompt.
+# ---------- prompt hook ----------
+# Preserve any prompt callbacks installed by other tools and add zprompt once.
 
-PROMPT_COMMAND=b_prompt_update
+z_prompt_register_precmd() {
+  local hook
+
+  if declare -p PROMPT_COMMAND 2>/dev/null | grep -q '^declare -a'; then
+    for hook in "${PROMPT_COMMAND[@]}"; do
+      [[ "$hook" == "b_prompt_update" ]] && return
+    done
+
+    PROMPT_COMMAND+=(b_prompt_update)
+    return
+  fi
+
+  case ";${PROMPT_COMMAND:-};" in
+    *';b_prompt_update;'*)
+      ;;
+    ';;')
+      PROMPT_COMMAND='b_prompt_update'
+      ;;
+    *)
+      PROMPT_COMMAND="${PROMPT_COMMAND};b_prompt_update"
+      ;;
+  esac
+}
+
+z_prompt_register_precmd
+unset -f z_prompt_register_precmd
