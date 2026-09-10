@@ -101,7 +101,7 @@ z_prompt_update() {
   root=$(command git rev-parse --show-toplevel 2>/dev/null)
 
   if [[ -n "$root" ]]; then
-    local prefix repo branch status line code
+    local prefix repo branch git_status line code
     local dirty=0
     local staged=0
     local conflict=0
@@ -129,12 +129,12 @@ z_prompt_update() {
 
     # Working-tree state.
 
-    status=$(command git status --porcelain 2>/dev/null)
+    git_status=$(command git status --porcelain 2>/dev/null)
 
-    if [[ -n "$status" ]]; then
+    if [[ -n "$git_status" ]]; then
       dirty=1
 
-      for line in ${(f)status}; do
+      for line in ${(f)git_status}; do
         code=${line[1,2]}
 
         case "$code" in
