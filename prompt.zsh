@@ -59,6 +59,7 @@ z_prompt_escape() {
 }
 
 z_prompt_update() {
+  local REPLY
   local machine=""
   local location
   local git_part=""
